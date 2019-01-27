@@ -1,7 +1,10 @@
 import java.util.HashMap;
 import java.util.LinkedList;
 
-/** A table that contains all symbols seen in the program.
+/**
+ * SymTable
+ *
+ * A table that contains all symbols seen in the program.
  * Represented by a List of HashMaps which map a string to a sym,
  * i.e. map a name to a type.
  *  @author Henry Xu
@@ -10,8 +13,6 @@ import java.util.LinkedList;
 public class SymTable {
 
     private LinkedList<HashMap<String, Sym>> table;
-
-
 
     public SymTable() {
         table = new LinkedList<>();

@@ -6,4 +6,9 @@ public class WrongArgumentException extends Exception {
     public WrongArgumentException(String message) {
         this.message = message;
     }
+
+    @Override
+    public String getMessage() {
+        return message;
+    }
 }
