@@ -80,10 +80,11 @@ public class SymTable {
     }
 
     public void print() {
-        System.out.println("\n=== Sym Table ===\n");
+        String s = "\n=== Sym Table ===\n";
         for (HashMap<String, Sym> scope : table) {
-            System.out.println(scope.toString());
+            s = s + scope.toString() + "\n";
         }
-        System.out.println();
+        s += "\n";
+        System.out.print(s);
     }
 }

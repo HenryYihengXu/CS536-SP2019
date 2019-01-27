@@ -1,3 +1,5 @@
+import java.io.*;
+
 /**
  * P1
  *
@@ -473,6 +475,30 @@ public class P1 {
                 System.out.println("Scope wasn't removed from the front.");
             }
         } catch (Exception ex) {
+        }
+
+        /* Test if print works correctly by intercepting out stream. */
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(buffer));
+
+        table6.print();
+
+        System.setOut(new PrintStream(new FileOutputStream(FileDescriptor.out)));
+
+        String result = buffer.toString();
+        buffer.reset();
+        String expect = "\n=== Sym Table ===\n" +
+                "{var6=Exception, var66=Exception[]}\n" +
+                "{var6=HashMap, var66=HashMap[]}\n" +
+                "{var3=List, var33=List[]}\n" +
+                "{var3=Sym, var33=Sym[]}\n" +
+                "{var3=String, var33=String[]}\n" +
+                "{var00=boolean[], var0=boolean}\n" +
+                "{var00=char[], var0=char}\n" +
+                "{var00=int[], var0=int}\n\n";
+
+        if (!result.equals(expect)) {
+            System.out.println("Wrong result of print().");
         }
     }
 }
