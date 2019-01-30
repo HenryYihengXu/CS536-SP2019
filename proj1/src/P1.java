@@ -3,10 +3,23 @@ import java.io.*;
 /**
  * P1
  *
- * This is a class whose sole purpose is to test the SymTable class, which
- * provides the following operations:
+ * This is a class whose sole purpose is to test the Sym and SymTable class.
+ *
+ * Sym provides the following operations:
+ *       constructor with parameter "type"
+ *          -- create a Sym with "type" type.
+ *
+ *       String getType()
+ *          -- Return the type of the Sym.
+ *
+ *       String toString()
+ *          -- Return the type of the Sym.
+ *
+ *
+ * SymTable provides the following operations:
  *       no-arg constructor
  *          -- create a linked list with an empty hash map in it.
+ *
  *       void addDecl(String idName, Sym sym)
  *          throws DuplicateSymException, EmptySymTableException,
  *          WrongArgumentException
@@ -16,6 +29,7 @@ import java.io.*;
  *             in the list already contains the given id name as a key,
  *             throw a DuplicateSymException. Otherwise, add the given idName
  *             and sym to the first HashMap in the list.
+ *
  *       void addScope()
  *         -- Add a new, empty HashMap to the front of the list.
  *
@@ -42,11 +56,11 @@ import java.io.*;
  *
  *       void print()
  *          -- This method is for debugging.
- *             First, print “\n=== Sym Table ===\n”.
+ *             First, print "\n=== Sym Table ===\n".
  *             Then, for each HashMap M in the list, print M.toString()
  *             followed by a newline. Finally, print one more newline.
  *
- * This code tests every List operation, including both correct and
+ * This code tests every operation in Symtable and Sym, including both correct and
  * bad calls to the operation that can throw an exception.
  * It produces output ONLY if a test fails.
  *
@@ -55,12 +69,24 @@ import java.io.*;
 
 public class P1 {
 
-    /** Thoroughly test SymTable.
+    /** Thoroughly test SymTable and Sym.
      * Produce output only if a test fails. */
     public static void main(String [] args) {
 
         if (args.length != 0) {
             System.out.println("No command-line arguments are expected.");
+        }
+
+        /** Test the constructor of Sym and getType.*/
+        Sym sym = new Sym("int");
+        if (!sym.getType().equals("int")) {
+            System.out.println("Wrong result of getType," +
+                    "or error occurs in constructor.");
+        }
+
+        /** Test toString of Sym.*/
+        if (!sym.toString().equals("int")) {
+            System.out.println("Wrong result of toString.");
         }
 
         /** Test the constructor of SymTable.
