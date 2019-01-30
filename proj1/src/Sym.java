@@ -11,12 +11,14 @@ public class Sym {
     private String type;
 
     /** Constructor of Sym.
-     *  Construct a Sym with given type. */
+     *  Construct a Sym with given type.
+     *  @param t the type to be assigned. */
     public Sym(String t) {
         type = t;
     }
 
-    /** Get the type of this Sym. */
+    /** Get the type of this Sym.
+     * @return the type of this Sym*/
     public String getType() {
         return type;
     }
