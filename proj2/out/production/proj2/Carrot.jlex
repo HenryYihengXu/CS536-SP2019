@@ -65,12 +65,10 @@ TAB=          \\t
 SINGLEQ=      \\'
 DOUBLEQ=      \\"
 QUESTION=     \\?
-BACKSLASH=    \\\\
+BACKSLASH=    \\
 
 ESCAPED=      [{NEWLINE}{TAB}{SINGLEQ}{DOUBLEQ}{QUESTION}{BACKSLASH}]
 CHAR=         {ESCAPED}|[^\n\\\"]
-
-BADESCAPED=   \\[^nt'"?\\]
 
 
 %implements java_cup.runtime.Scanner
@@ -153,24 +151,6 @@ return new Symbol(sym.EOF);
     return S;
 }
 
-\"{CHAR}*(\n|\z)   {
-                ErrMsg.fatal(yyline+1, CharNum.num,
-                                         "unterminated string literal ignored");
-                CharNum.num = 1;
-              }
-
-\"({CHAR}*{BADESCAPED}+)+\"  {
-                ErrMsg.fatal(yyline+1, CharNum.num,
-                                         "string literal with bad escaped character ignored");
-                CharNum.num += yytext().length();
-              }
-
-\"((({CHAR}*{BADESCAPED}+)+)|(({CHAR}*{BADESCAPED}+)+\\))(\n|\z) {
-                ErrMsg.fatal(yyline+1, CharNum.num,
-                                         "unterminated string literal with bad escaped character ignored");
-                CharNum.num = 1;
-              }
-
 \"{CHAR}*\"   {
                 Symbol S = new Symbol(sym.STRINGLITERAL,
                              new StrLitTokenVal(yyline+1, CharNum.num, yytext()));
@@ -180,24 +160,14 @@ return new Symbol(sym.EOF);
 
 {DIGIT}+  { // NOTE: the following computation of the integer value does NOT
             //       check for overflow.  This must be changed.
-            try {
-                int val = (new Integer(yytext())).intValue();
-                Symbol S = new Symbol(sym.INTLITERAL,
-                                 new IntLitTokenVal(yyline+1, CharNum.num, val));
-                CharNum.num += yytext().length();
-                return S;
-            } catch (NumberFormatException e) {
-                ErrMsg.warn(yyline+1, CharNum.num,
-                                     "integer literal too large; using max value");
-                int val = Integer.MAX_VALUE;
-                Symbol S = new Symbol(sym.INTLITERAL,
-                                new IntLitTokenVal(yyline+1, CharNum.num, val));
-                CharNum.num += yytext().length();
-                return S;
-            }
-           }
+            int val = (new Integer(yytext())).intValue();
+            Symbol S = new Symbol(sym.INTLITERAL,
+                             new IntLitTokenVal(yyline+1, CharNum.num, val));
+            CharNum.num += yytext().length();
+            return S;
+          }
 
-((\/\/\/)|(##))[^\n]* {}
+
 
 \n        { CharNum.num = 1; }
 
@@ -332,3 +302,5 @@ return new Symbol(sym.EOF);
                          "ignoring illegal character: " + yytext());
             CharNum.num++;
           }
+
+
