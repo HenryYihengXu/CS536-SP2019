@@ -153,25 +153,25 @@ return new Symbol(sym.EOF);
     return S;
 }
 
-\"{CHAR}*(\n|\z)   {
+"\"{CHAR}*(\n|\z)"  {
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "unterminated string literal ignored");
                 CharNum.num = 1;
               }
 
-\"({CHAR}*{BADESCAPED}+)+\"  {
+"\"({CHAR}*{BADESCAPED}+)+\""  {
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "string literal with bad escaped character ignored");
                 CharNum.num += yytext().length();
               }
 
-\"((({CHAR}*{BADESCAPED}+)+)|(({CHAR}*{BADESCAPED}+)+\\))(\n|\z) {
+"\"((({CHAR}*{BADESCAPED}+)+)|(({CHAR}*{BADESCAPED}+)+\\))(\n|\z)" {
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "unterminated string literal with bad escaped character ignored");
                 CharNum.num = 1;
               }
 
-\"{CHAR}*\"   {
+"\"{CHAR}*\""   {
                 Symbol S = new Symbol(sym.STRINGLITERAL,
                              new StrLitTokenVal(yyline+1, CharNum.num, yytext()));
                 CharNum.num += yytext().length();
