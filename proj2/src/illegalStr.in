@@ -1,0 +1,7 @@
+"good string"
+"unterminated string
+"bad \" string "
+"bad string \a" "good string" "bad string \n \ \bad"
+"very bad string \
+"very bad string \very bad
+"to get error message"

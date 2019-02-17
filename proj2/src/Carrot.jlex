@@ -54,23 +54,23 @@ class StrLitTokenVal extends TokenVal {
 class CharNum {
     static int num=1;
 }
+
 %%
 
 DIGIT=        [0-9]
 WHITESPACE=   [\040\t]
 LETTER=       [a-zA-Z]
 
-NEWLINE=      \\n
-TAB=          \\t
-SINGLEQ=      \\'
-DOUBLEQ=      \\"
-QUESTION=     \\?
-BACKSLASH=    \\\\
-
-ESCAPED=      [{NEWLINE}{TAB}{SINGLEQ}{DOUBLEQ}{QUESTION}{BACKSLASH}]
-CHAR=         {ESCAPED}|[^\n\\\"]
-
-BADESCAPED=   \\[^nt'"?\\]
+NEWLINE=      (\\n)
+TAB=          (\\t)
+SINGLEQ=      (\\')
+DOUBLEQ=      (\\\")
+QUESTION=     (\\\?)
+BACKSLASH=    (\\\\)
+QUOTE=        [\"]
+ESCAPED=      ({NEWLINE})|({TAB})|({SINGLEQ})|({DOUBLEQ})|({QUESTION})|({BACKSLASH})
+CHARACTER=    ({ESCAPED}|[^\n\\\"])
+BADESCAPED=   (\\[^nt'\"\?\\\n])
 
 
 %implements java_cup.runtime.Scanner
@@ -85,7 +85,10 @@ return new Symbol(sym.EOF);
 
 %%
 
-"bool"    { Symbol S = new Symbol(sym.BOOL, new TokenVal(yyline+1, CharNum.num));
+
+"bool"    {
+            // Regular expressions for all reserved words.
+            Symbol S = new Symbol(sym.BOOL, new TokenVal(yyline+1, CharNum.num));
             CharNum.num += 4;
             return S;
           }
@@ -147,46 +150,68 @@ return new Symbol(sym.EOF);
 
 ({LETTER}|_)({LETTER}|{DIGIT}|_)*
 {
+    // Regular expression for identifier.
     Symbol S = new Symbol(sym.ID,
-                    new IdTokenVal(yyline+1, CharNum.num, yytext()));
+                     new IdTokenVal(yyline+1, CharNum.num, yytext()));
     CharNum.num += yytext().length();
     return S;
 }
 
-"\"{CHAR}*(\n|\z)"  {
+{QUOTE}({CHARACTER})*{QUOTE} {
+    // Regular expression for good string.
+    Symbol S = new Symbol(sym.STRINGLITERAL, new StrLitTokenVal(yyline+1, CharNum.num, yytext()));
+    CharNum.num += yytext().length();
+    return S;
+}
+
+{QUOTE}({CHARACTER})*  {
+                // Regular expression for unterminated string.
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "unterminated string literal ignored");
                 CharNum.num = 1;
               }
 
-"\"({CHAR}*{BADESCAPED}+)+\""  {
+{QUOTE}(({CHARACTER})*({BADESCAPED})+({CHARACTER})*)+{QUOTE}  {
+                // Regular expression for string with bad escaped characters.
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "string literal with bad escaped character ignored");
                 CharNum.num += yytext().length();
               }
 
-"\"((({CHAR}*{BADESCAPED}+)+)|(({CHAR}*{BADESCAPED}+)+\\))(\n|\z)" {
+{QUOTE}((({CHARACTER})*({BADESCAPED})+({CHARACTER})*)+) {
+                // Regular expression for unterminated string with bad escaped characters.
                 ErrMsg.fatal(yyline+1, CharNum.num,
                                          "unterminated string literal with bad escaped character ignored");
                 CharNum.num = 1;
               }
 
-"\"{CHAR}*\""   {
-                Symbol S = new Symbol(sym.STRINGLITERAL,
-                             new StrLitTokenVal(yyline+1, CharNum.num, yytext()));
-                CharNum.num += yytext().length();
-                return S;
+{QUOTE}((({CHARACTER})*({BADESCAPED})+({CHARACTER})*)+\\) {
+                // Also regular expression for unterminated string with bad escaped characters.
+                // I split it because it is more clear and shorter.
+                ErrMsg.fatal(yyline+1, CharNum.num,
+                                         "unterminated string literal with bad escaped character ignored");
+                CharNum.num = 1;
+              }
+
+{QUOTE}(({CHARACTER})*\\) {
+                // Also regular expression for unterminated string with bad escaped characters.
+                // I split it because it is more clear and shorter.
+                ErrMsg.fatal(yyline+1, CharNum.num,
+                                         "unterminated string literal with bad escaped character ignored");
+                CharNum.num = 1;
               }
 
 {DIGIT}+  { // NOTE: the following computation of the integer value does NOT
             //       check for overflow.  This must be changed.
+
+            // Regular expression for integer literal (both good and overflowed).
             try {
                 int val = (new Integer(yytext())).intValue();
                 Symbol S = new Symbol(sym.INTLITERAL,
                                  new IntLitTokenVal(yyline+1, CharNum.num, val));
                 CharNum.num += yytext().length();
                 return S;
-            } catch (NumberFormatException e) {
+            } catch (NumberFormatException e) { // integer is too large.
                 ErrMsg.warn(yyline+1, CharNum.num,
                                      "integer literal too large; using max value");
                 int val = Integer.MAX_VALUE;
@@ -197,13 +222,17 @@ return new Symbol(sym.EOF);
             }
            }
 
-((\/\/\/)|(##))[^\n]* {}
+((\/\/\/)|(##))[^\n]* {
+    // Regular expression for comments.
+}
 
 \n        { CharNum.num = 1; }
 
 {WHITESPACE}+  { CharNum.num += yytext().length(); }
 
-"+"       { Symbol S = new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num));
+"+"       {
+            // Regular expressions for all symbols.
+            Symbol S = new Symbol(sym.PLUS, new TokenVal(yyline+1, CharNum.num));
             CharNum.num++;
             return S;
           }
@@ -328,7 +357,9 @@ return new Symbol(sym.EOF);
             return S;
           }
 
-.         { ErrMsg.fatal(yyline+1, CharNum.num,
+.         {
+            // Any other character/string will be treated as error.
+            ErrMsg.fatal(yyline+1, CharNum.num,
                          "ignoring illegal character: " + yytext());
             CharNum.num++;
           }

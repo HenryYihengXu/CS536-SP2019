@@ -37,7 +37,15 @@ ErrMsg.class: ErrMsg.java
 ###
 test:
 	java -cp $(CP) P2 
-	diff allTokens.in allTokens.out
+	diff allTokens.out allTokensExpected.out
+	diff lineNumber1.out lineNumber1Expected.out
+	diff lineNumber2.out lineNumber2Expected.out
+	diff charNumber1.out charNumber1Expected.out
+	diff charNumber2.out charNumber2Expected.out
+	diff illegalInt.out illegalIntExpected.out
+	diff illegalStr.out illegalStrExpected.out
+	diff comment.out commentExpected.out
+	diff eof.out eofExpected.out
 
 ###
 # clean up
@@ -48,3 +56,11 @@ clean:
 
 cleantest:
 	rm -f allTokens.out
+	rm -f lineNumber1.out
+	rm -f lineNumber2.out
+	rm -f charNumber1.out
+	rm -f charNumber2.out
+	rm -f illegalInt.out
+	rm -f illegalStr.out
+	rm -f comment.out
+	rm -f eof.out	

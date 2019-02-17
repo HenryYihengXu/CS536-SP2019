@@ -1,0 +1,17 @@
+1
+5
+7
+9
+10
+1
+2:18 ***ERROR*** unterminated string literal ignored
+1
+18
+22
+4:26 ***ERROR*** unterminated string literal with bad escaped character ignored
+6:1 ***ERROR*** string literal with bad escaped character ignored
+14
+6:17 ***ERROR*** string literal with bad escaped character ignored
+32
+1
+7

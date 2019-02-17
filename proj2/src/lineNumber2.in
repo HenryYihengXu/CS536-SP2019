@@ -1,0 +1,15 @@
+int a = 1;
+"line number 2";
+
+tabs;
+
+     
+		
+"ignored line
+
+"ignored line \a
+
+line12 line12"ignored line with literals before it
+
+"ignored line with literals after it\a" line14
+getNextErr

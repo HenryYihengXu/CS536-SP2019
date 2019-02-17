@@ -1,0 +1,7 @@
+int a = 1;
+"char number 17" "ignored;
+
+"char number 018";	 	22		"ignored \q
+
+"ignored \a" 14 "ignored \b"	 	32 	
+return;

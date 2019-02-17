@@ -1,0 +1,14 @@
+/// this is a comment
+100
+//// comment 2
+_qwe123
+## this is another comment
+"string"
+### comment 4 int a = 0;
+{
+///## "shouldn't be printed out: 1234"
+a++;
+##/// "comment 5 \n\t\"
+return;
+///#/#/ "very bad string \
+}

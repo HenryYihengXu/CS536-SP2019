@@ -49,3 +49,4 @@ public class sym {
   public static final int FALSE = 6;
   public static final int STRUCT = 7;
 }
+
