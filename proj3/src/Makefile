@@ -47,6 +47,7 @@ test:
 ###
 clean:
 	rm -f *~ *.class parser.java Carrot.jlex.java sym.java
+	rm -f test.out
 
 ## cleantest (delete test artifacts)
 cleantest:
