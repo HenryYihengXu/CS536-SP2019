@@ -1,0 +1,51 @@
+int a;
+int a;
+int b;
+void c;
+int y;
+int z;
+
+void g(int a, int b, int c, bool d, void e) {
+    int f;
+    int e;
+    cin >> a;
+    cout << b;
+    cin >> z;
+    cout << y;
+    return;
+}
+
+int f() {
+    int a;
+    bool d;
+    int d;
+    void e;
+    a = 1;
+    b = 1;
+    c = 1;
+    f = 1;
+    if (b == 0) {
+        bool a;
+        int f;
+        int g;
+        int g;
+        bool h;
+        i = 0;
+        return 0;
+    } else {
+        bool h;
+        int i;
+        while (a == 0) {
+            int j;
+            bool k;
+            repeat (d && k) {
+                int l;
+                g(a, d, i, k, l);
+                return 0;
+            }
+            g(a, d, i, k, l);
+        }
+        g(a, d, i, k, l);
+    }
+    g(a, d, i, k, l);
+}

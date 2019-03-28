@@ -67,5 +67,20 @@ public class SymTable {
             System.out.println(symTab.toString());
         }
         System.out.println();
+        /*int i = 0;
+        int j = 0;
+        if (i == 0) {
+            int i;
+            j = 1;
+            int p;
+        }
+        p = 0;
+
+        while (i == 1) {
+            int i;
+            j = 1;
+            int k = 0;
+        }
+        k = 0;*/
     }
 }
