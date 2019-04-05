@@ -1,10 +1,29 @@
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 public class Sym {
 
     private String type;
     private String kind;
-    
+    private int myLineNum;
+    private int myCharNum;
+
+    public int getMyLineNum() {
+        return myLineNum;
+    }
+
+    public int getMyCharNum() {
+        return myCharNum;
+    }
+
+    public void setMyLineNum(int myLineNum) {
+        this.myLineNum = myLineNum;
+    }
+
+    public void setMyCharNum(int myCharNum) {
+        this.myCharNum = myCharNum;
+    }
     public Sym(String type, String kind) {
         this.type = type;
         this.kind = kind;
@@ -34,33 +53,57 @@ class VarSym extends Sym {
 }
 
 class FnSym extends Sym {
-    private HashMap<String, String> formalList;
+    private LinkedList<String> formalList;
+    private LinkedList<String> helpList;
 
     public FnSym(String type, String kind) {
         super(type, kind);
-        formalList = new HashMap<String, String>();
+        formalList = new LinkedList<>();
+        helpList = new LinkedList<>();
     }
 
     public void addFormal(String name, String type) {
-        formalList.put(name, type);
+        if (!helpList.contains(name)) {
+            formalList.addLast(type);
+            helpList.addLast(name);
+        }
     }
 
+    public LinkedList<String> getFormalList() {
+        return formalList;
+    }
+
+    public LinkedList<String> getHelpList() {
+        return helpList;
+    }
 }
 
 class StructDeclSym extends Sym {
     private SymTable myTable;
 
+
     public void addDecl(String name, Sym sym)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myTable.addDecl(name, sym);
+        if (myTable.lookupLocal(name) == null) {
+            myTable.addDecl(name, sym);
+        }
     }
 
     public StructDeclSym(String type, String kind) {
         super("struct", "structDecl");
         myTable = new SymTable();
     }
+
+    public Sym lookupLocal(String name) {
+        return myTable.lookupLocal(name);
+    }
+
+    public Sym lookupGlobal(String name) {
+        return myTable.lookupGlobal(name);
+    }
+
+    public SymTable getMyTable() {
+        return myTable;
+    }
 }
 
-class StructSym extends Sym {
-
-}

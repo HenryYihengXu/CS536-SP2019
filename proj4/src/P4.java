@@ -57,7 +57,7 @@ public class P4 {
 	// ADD NAME ANALYSIS PART HERE
         SymTable table = new SymTable();
         try {
-            ((ASTnode)root.value).nameAnalyze(table, null);
+            ((ProgramNode)root.value).nameAnalyze(table);
         } catch (DuplicateSymException ex) {
             System.err.println("Exception occured during name analysis: " + ex);
             System.exit(-1);
@@ -69,7 +69,9 @@ public class P4 {
             System.exit(-1);
         }
 
-
+        if (table.isError()) {
+            return;
+        }
         ((ASTnode)root.value).unparse(outFile, 0);
         outFile.close();
 

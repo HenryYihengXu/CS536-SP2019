@@ -1,8 +1,17 @@
 import java.util.*;
 
 public class SymTable {
+    private boolean isError = false;
     private List<HashMap<String, Sym>> list;
-    
+
+    public void setError(boolean error) {
+        isError = error;
+    }
+
+    public boolean isError() {
+        return isError;
+    }
+
     public SymTable() {
         list = new LinkedList<HashMap<String, Sym>>();
         list.add(new HashMap<String, Sym>());

@@ -1,51 +1,99 @@
-int a;
-int a;
-int b;
-void c;
-int y;
-int z;
+int varA;
+bool varB;
+int varB; // should print Multiply declared identifier error
+bool varA; // should print Multiply declared identifier error
+void varC; // should print Non-function declared void error
+int funcA;
 
-void g(int a, int b, int c, bool d, void e) {
-    int f;
-    int e;
-    cin >> a;
-    cout << b;
-    cin >> z;
-    cout << y;
-    return;
+bool funcA(int formalAA, bool formalAA, void formalAB, bool formalAC) {
+// should print Multiply declared identifier error, but continue analyze the function
+// should print Multiply declared identifier error, and Non-function declared void error
+	int formalAC; // should not print error
+	return FAvar1A; // should print Undeclared identifier error
 }
 
-int f() {
-    int a;
-    bool d;
-    int d;
-    void e;
-    a = 1;
-    b = 1;
-    c = 1;
-    f = 1;
-    if (b == 0) {
-        bool a;
-        int f;
-        int g;
-        int g;
-        bool h;
-        i = 0;
-        return 0;
-    } else {
-        bool h;
-        int i;
-        while (a == 0) {
-            int j;
-            bool k;
-            repeat (d && k) {
-                int l;
-                g(a, d, i, k, l);
-                return 0;
+struct varA { // print Multiply declared identifier error, and not continue analyze the struct body
+    int aaa;
+    bool aaa;	 // should not print error
+};
+
+struct structDeclA {
+	int SDAvarA;
+};
+
+struct structDeclB {
+	bool SDBvarA;
+	struct structDeclA SDBstructA;
+};
+
+struct structDeclC {
+	int SDCvarA;
+	struct structDeclB SDCstructA;
+};
+
+struct structDeclD {
+	bool SDDvarA;
+	struct structDeclC SDDstructA;
+};
+
+
+struct structDeclE {
+	int bbb; // no error
+	int ccc;
+	int ccc; // print Multiply declared identifier error
+	void ddd; // print Non-function declared void error
+};
+
+struct structDeclE structA;
+
+int funcB(int formalBA, int formalBB, bool formalBC, bool formalBD, int formalBE, bool formalBF) {
+	cout << formalBA;
+	cout << varA;
+	cin >> structA.bbb;
+	cin >> structA.ccc;
+	cin >> structA.ddd; // Invalid struct field name
+}
+
+bool funcB(int formalBA) { // mutiply declared identifier, but sould continue to analyze
+	int varA;
+	int varA; // mutiply declared identifier
+	void varB; // Non-function declared void
+}
+
+void funcC() {
+	
+	int FCvarA;
+	struct varA sss; // Invalid name of struct type
+	struct undeclare ssss; // Undeclared identifier
+	struct structDeclD FCstructA;
+	FCstructA.SDDstructA.SDCstructA.SDBstructA.SDAvarA = 0; // no error
+	FCstructA.SDDstructA.SDCvarA.SDBstructA.SDAvarA = 0; // Dot-access of non-struct type at SDCvarA
+	FCstructA.SDDstructA.SDCvarB.SDBstructA.SDAvarA = 0; // Invalid struct field name at SDCvarB
+    varA.aaa = 0; // Dot-access of non-struct type
+}
+
+void funcD() {
+	
+	int FDvar1A;
+	if (FDvar1A == 1) {
+        bool FDvar2A;
+        if (FDvar2A) {
+            int FDvar3A;
+            int FDvar3B;
+        } else {
+            int FDvar3A; // no error
+            FDvar3B = 0; // Undeclared identifier
+            while (FDvar3A > FDvar1A) {
+                bool FDvar4A;
+                repeat (FDvar4A || FDvar2A) {
+                    int FDvar5A;
+                    funcB(structA.bbb, FDvar1A, FDvar2A, FDvar3A, FDvar4A, FDvar5A);
+                }
+                funcB(structA.bbb, FDvar1A, FDvar2A, FDvar3A, FDvar4A, FDvar5A); //  Undeclared identifier at FDvar5A
             }
-            g(a, d, i, k, l);
+            funcB(structA.bbb, FDvar1A, FDvar2A, FDvar3A, FDvar4A, FDvar5A); //  Undeclared identifier at FDvar4A
         }
-        g(a, d, i, k, l);
-    }
-    g(a, d, i, k, l);
+        funcB(structA.bbb, FDvar1A, FDvar2A, FDvar3A, FDvar4A, FDvar5A); //  Undeclared identifier at FDvar3A
+	}
+	funcB(structA.bbb, FDvar1A, FDvar2A, FDvar3A, FDvar4A, FDvar5A); //  Undeclared identifier at FDvar2A
 }

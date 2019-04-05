@@ -115,9 +115,6 @@ abstract class ASTnode {
     protected void addIndent(PrintWriter p, int indent) {
         for (int k = 0; k < indent; k++) p.print(" ");
     }
-
-    abstract public void nameAnalyze(SymTable table, Sym sym)
-            throws DuplicateSymException, EmptySymTableException, WrongArgumentException;
 }
 
 // **********************************************************************
@@ -134,9 +131,9 @@ class ProgramNode extends ASTnode {
         myDeclList.unparse(p, indent);
     }
 
-    public void nameAnalyze(SymTable table, Sym sym)
+    public void nameAnalyze(SymTable table)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myDeclList.nameAnalyze(table, null);
+        myDeclList.nameAnalyze(table);
     }
 
     // 1 kid
@@ -164,12 +161,12 @@ class DeclListNode extends ASTnode {
         }
     }
 
-    public void nameAnalyze(SymTable table, Sym sym)
+    public void nameAnalyze(SymTable table)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         Iterator it = myDecls.iterator();
         try {
             while (it.hasNext()) {
-                ((DeclNode)it.next()).nameAnalyze(table, sym);
+                ((DeclNode)it.next()).nameAnalyze(table);
             }
         } catch (NoSuchElementException ex) {
             System.err.println("unexpected NoSuchElementException in DeclListNode.print");
@@ -197,13 +194,13 @@ class FormalsListNode extends ASTnode {
         } 
     }
 
-    public void nameAnalyze(SymTable table, Sym sym)
+    public void nameAnalyze(SymTable table)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         //table.addScope();
         Iterator<FormalDeclNode> it = myFormals.iterator();
 
         while (it.hasNext()) {  // print the rest of the list
-            it.next().nameAnalyze(table, sym);
+            it.next().nameAnalyze(table);
         }
 
     }
@@ -227,10 +224,9 @@ class FnBodyNode extends ASTnode {
         myStmtList.unparse(p, indent);
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myDeclList.nameAnalyze(table, sym);
-        myStmtList.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myDeclList.nameAnalyze(table);
+        myStmtList.nameAnalyze(table);
     }
 
     // 2 kids
@@ -250,11 +246,10 @@ class StmtListNode extends ASTnode {
         }
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         Iterator<StmtNode> it = myStmts.iterator();
         while (it.hasNext()) {
-            it.next().nameAnalyze(table, sym);
+            it.next().nameAnalyze(table);
         }
     }
 
@@ -278,11 +273,11 @@ class ExpListNode extends ASTnode {
         } 
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public void nameAnalyze(SymTable table)
+            throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         Iterator<ExpNode> it = myExps.iterator();
         while (it.hasNext()) {
-            it.next().nameAnalyze(table, sym);
+            it.next().nameAnalyze(table);
         }
     }
 
@@ -295,6 +290,8 @@ class ExpListNode extends ASTnode {
 // **********************************************************************
 
 abstract class DeclNode extends ASTnode {
+    abstract public void nameAnalyze(SymTable table)
+            throws DuplicateSymException, EmptySymTableException, WrongArgumentException;
 }
 
 class VarDeclNode extends DeclNode {
@@ -308,7 +305,13 @@ class VarDeclNode extends DeclNode {
         return myType.toString();
     }
 
-    public String
+    public TypeNode getMyType() {
+        return myType;
+    }
+
+    public String getName() {
+        return myId.getMyStrVal();
+    }
 
     public void unparse(PrintWriter p, int indent) {
         addIndent(p, indent);
@@ -319,22 +322,44 @@ class VarDeclNode extends DeclNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym)
+    public void nameAnalyze(SymTable table)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         if (myType.toString().equals("void")) {
             ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Non-function declared void");
+            table.setError(true);
             return;
         }
         if (table.lookupLocal(myId.getMyStrVal()) != null) {
             if (!table.lookupLocal(myId.getMyStrVal()).getKind().equals("formal")) {
                 ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Multiply declared identifier");
+                table.setError(true);
                 return;
             } else {
                 return;
             }
         }
-        Sym s = new VarSym(myType.toString(), "var");
-        table.addDecl(myId.getMyStrVal(), s);
+        if (myType.toString().equals("struct")) {
+            Sym ss = table.lookupGlobal(((StructNode)myType).getMyId().getMyStrVal());
+            if (ss == null) {
+                ErrMsg.fatal(((StructNode)myType).getMyId().getMyLineNum(),
+                        ((StructNode)myType).getMyId().getMyCharNum(),
+                        "Undeclared identifier");
+                table.setError(true);
+                return;
+            } else if (!ss.getKind().equals("structDecl")) {
+                ErrMsg.fatal(((StructNode)myType).getMyId().getMyLineNum(),
+                        ((StructNode)myType).getMyId().getMyCharNum(),
+                        "Invalid name of struct type");
+                table.setError(true);
+                return;
+            } else {
+                Sym s = new VarSym(((StructNode)myType).getMyId().getMyStrVal(), "struct");
+                table.addDecl(myId.getMyStrVal(), s);
+            }
+        } else {
+            Sym s = new VarSym(myType.toString(), "var");
+            table.addDecl(myId.getMyStrVal(), s);
+        }
     }
 
     // 3 kids
@@ -369,17 +394,23 @@ class FnDeclNode extends DeclNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym)
+    public void nameAnalyze(SymTable table)
             throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        Sym s = new FnSym(myType.toString(), "func");
+        FnSym s = new FnSym(myType.toString(), "func");
         if (table.lookupLocal(myId.getMyStrVal()) != null) {
             ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Multiply declared identifier");
+            table.setError(true);
         } else {
             table.addDecl(myId.getMyStrVal(), s);
         }
         table.addScope();
-        myFormalsList.nameAnalyze(table, s);
-        myBody.nameAnalyze(table, null);
+        Iterator<FormalDeclNode> it = myFormalsList.getMyFormals().iterator();
+        while (it.hasNext()) {  // print the rest of the list
+            FormalDeclNode n = it.next();
+            s.addFormal(n.getName(), n.getType());
+        }
+        myFormalsList.nameAnalyze(table);
+        myBody.nameAnalyze(table);
         table.removeScope();
     }
 
@@ -402,19 +433,28 @@ class FormalDeclNode extends DeclNode {
         myId.unparse(p, 0);
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public String getType() {
+        return myType.toString();
+    }
+
+    public String getName() {
+        return myId.getMyStrVal();
+    }
+
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         if (myType.toString().equals("void")) {
             ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Non-function declared void");
+            table.setError(true);
             return;
         }
         if (table.lookupLocal(myId.getMyStrVal()) != null) {
             ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Multiply declared identifier");
+            table.setError(true);
             return;
         }
         Sym s = new VarSym(myType.toString(), "formal");
         table.addDecl(myId.getMyStrVal(), s);
-        ((FnSym)sym).addFormal(myId.getMyStrVal(), myType.toString());
+        //((FnSym)sym).addFormal(myId.getMyStrVal(), myType.toString());
     }
 
     // 2 kids
@@ -439,19 +479,27 @@ class StructDeclNode extends DeclNode {
 
     }
 
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         if (table.lookupLocal(myId.getMyStrVal()) != null) {
             ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Multiply declared identifier");
+            table.setError(true);
             return;
         }
+        StructDeclSym s = new StructDeclSym(myId.getMyStrVal(), "structDecl");
+        table.addDecl(myId.getMyStrVal(), s);
         table.addScope();
-        StructDeclSym s = new StructDeclSym("struct", "structDecl");
         Iterator<DeclNode> it = myDeclList.getMyDecls().iterator();
         while (it.hasNext()) {
-
-            s.addDecl();
+            DeclNode n = it.next();
+            if (((VarDeclNode)n).getType().equals("struct")) {
+                s.addDecl(((VarDeclNode)n).getName(), new VarSym(((StructNode)(((VarDeclNode)n).getMyType())).getMyId().getMyStrVal(), "struct"));
+            } else if (((VarDeclNode)n).getType().equals("void")){
+            } else {
+                s.addDecl(((VarDeclNode)n).getName(), new VarSym(((VarDeclNode)n).getType(), "var"));
+            }
         }
-        myDeclList.nameAnalyze(table, s);
+        myDeclList.nameAnalyze(table);
+        table.removeScope();
     }
 
     // 2 kids
@@ -474,12 +522,6 @@ class IntNode extends TypeNode {
         p.print("int");
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym)
-            throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        sym.setType("int");
-    }
-
     public String toString() {
         return "int";
     }
@@ -493,12 +535,6 @@ class BoolNode extends TypeNode {
         p.print("bool");
     }
 
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym)
-            throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        sym.setType("bool");
-    }
-
     public String toString() {
         return "bool";
     }
@@ -510,12 +546,6 @@ class VoidNode extends TypeNode {
 
     public void unparse(PrintWriter p, int indent) {
         p.print("void");
-    }
-
-    @Override
-    public void nameAnalyze(SymTable table, Sym sym)
-            throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        sym.setType("void");
     }
 
     public String toString() {
@@ -537,8 +567,8 @@ class StructNode extends TypeNode {
         return "struct";
     }
 
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+    public IdNode getMyId() {
+        return myId;
     }
 
     // 1 kid
@@ -550,6 +580,8 @@ class StructNode extends TypeNode {
 // **********************************************************************
 
 abstract class StmtNode extends ASTnode {
+    abstract public void nameAnalyze(SymTable table)
+            throws DuplicateSymException, EmptySymTableException, WrongArgumentException;
 }
 
 class AssignStmtNode extends StmtNode {
@@ -564,8 +596,8 @@ class AssignStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myAssign.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myAssign.nameAnalyze(table);
     }
 
     // 1 kid
@@ -584,8 +616,8 @@ class PostIncStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
     }
 
     // 1 kid
@@ -604,8 +636,8 @@ class PostDecStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
     }
 
     // 1 kid
@@ -625,8 +657,8 @@ class ReadStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
     }
 
     // 1 kid (actually can only be an IdNode or an ArrayExpNode)
@@ -646,8 +678,8 @@ class WriteStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
     }
 
     // 1 kid
@@ -673,11 +705,11 @@ class IfStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
         table.addScope();
-        myDeclList.nameAnalyze(table, sym);
-        myStmtList.nameAnalyze(table, sym);
+        myDeclList.nameAnalyze(table);
+        myStmtList.nameAnalyze(table);
         table.removeScope();
     }
 
@@ -716,15 +748,15 @@ class IfElseStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
         table.addScope();
-        myThenDeclList.nameAnalyze(table, sym);
-        myThenStmtList.nameAnalyze(table, sym);
+        myThenDeclList.nameAnalyze(table);
+        myThenStmtList.nameAnalyze(table);
         table.removeScope();
         table.addScope();
-        myElseDeclList.nameAnalyze(table, sym);
-        myElseStmtList.nameAnalyze(table, sym);
+        myElseDeclList.nameAnalyze(table);
+        myElseStmtList.nameAnalyze(table);
         table.removeScope();
     }
 
@@ -755,11 +787,11 @@ class WhileStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
         table.addScope();
-        myDeclList.nameAnalyze(table, sym);
-        myStmtList.nameAnalyze(table, sym);
+        myDeclList.nameAnalyze(table);
+        myStmtList.nameAnalyze(table);
         table.removeScope();
     }
 
@@ -788,11 +820,11 @@ class RepeatStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
         table.addScope();
-        myDeclList.nameAnalyze(table, sym);
-        myStmtList.nameAnalyze(table, sym);
+        myDeclList.nameAnalyze(table);
+        myStmtList.nameAnalyze(table);
         table.removeScope();
     }
 
@@ -814,8 +846,8 @@ class CallStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myCall.nameAnalyze(table, sym);
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myCall.nameAnalyze(table);
     }
 
     // 1 kid
@@ -838,9 +870,9 @@ class ReturnStmtNode extends StmtNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public void nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
         if (myExp != null) {
-            myExp.nameAnalyze(table, sym);
+            myExp.nameAnalyze(table);
         }
     }
 
@@ -853,6 +885,8 @@ class ReturnStmtNode extends StmtNode {
 // **********************************************************************
 
 abstract class ExpNode extends ASTnode {
+    abstract public Sym nameAnalyze(SymTable table)
+            throws DuplicateSymException, EmptySymTableException, WrongArgumentException;
 }
 
 class IntLitNode extends ExpNode {
@@ -867,8 +901,8 @@ class IntLitNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        return null;
     }
 
     private int myLineNum;
@@ -888,8 +922,8 @@ class StringLitNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        return null;
     }
 
     private int myLineNum;
@@ -908,8 +942,8 @@ class TrueNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        return null;
     }
 
     private int myLineNum;
@@ -927,8 +961,8 @@ class FalseNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        return null;
     }
 
     private int myLineNum;
@@ -943,26 +977,74 @@ class IdNode extends ExpNode {
     }
 
     public void unparse(PrintWriter p, int indent) {
+
         p.print(myStrVal);
+        if (mySym != null) {
+            p.print("(");
+            if (mySym.getKind().equals("func")) {
+                Iterator<String> it = ((FnSym)mySym).getFormalList().iterator();
+                if (it.hasNext()) {
+                    p.print(it.next());
+                    while (it.hasNext()) {
+                        p.print(", ");
+                        p.print(it.next());
+                    }
+                    p.print(" -> ");
+                } else {
+                    p.print("-> ");
+                }
+            }
+            p.print(mySym.getType());
+            p.print(")");
+        }
+
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        Sym s = table.lookupGlobal(myStrVal);
-        if (s == null) {
-            ErrMsg.fatal(myLineNum, myCharNum, "Undeclared identifier");
-            return;
-        }
-        setMySym(s);
-    }
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
 
+        /*if (sym != null) {
+            //if (sym.getKind().equals("structDecl")) {
+            Sym s = ((StructDeclSym)sym).lookupGlobal(myStrVal);
+            if (s == null) {
+                ErrMsg.fatal(myLineNum, myCharNum, "Invalid struct field name");
+                return null;
+            }
+            setMySym(s);
+            if (s.getKind().equals("struct")) {
+                return (StructDeclSym)s;
+            } else {
+                Sym ss = new Sym(" ", "var");
+                ss.setMyLineNum(myLineNum);
+                ss.setMyCharNum(myCharNum);
+                return ss;
+            }
+            } else {
+                ErrMsg.fatal(sym.getMyLineNum(), sym.getMyCharNum(), "Dot-access of non-struct type");
+                Sym ss = new Sym(" ", " ");
+                ss.setMyLineNum(myLineNum);
+                ss.setMyCharNum(myCharNum);
+                return ss;
+            }
 
-    public void nameAnalyzeDecl(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
-    }
-
-    public void nameAnalyzeUse(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-
+            //return null;
+        } else {*/
+            Sym s = table.lookupGlobal(myStrVal);
+            if (s == null) {
+                ErrMsg.fatal(myLineNum, myCharNum, "Undeclared identifier");
+                table.setError(true);
+                return null;
+            }
+            setMySym(s);
+            if (s.getKind().equals("struct")) {
+                return s;
+            } else {
+                Sym ss = new Sym(" ", "var");
+                ss.setMyLineNum(myLineNum);
+                ss.setMyCharNum(myCharNum);
+                return ss;
+            }
+        //}
     }
 
     public int getMyLineNum() {
@@ -1005,13 +1087,50 @@ class DotAccessExpNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+    public Sym nameAnalyze(SymTable table)
+            throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        Sym s = myLoc.nameAnalyze(table);
+        if (s == null) {
+            return null;
+        } else if (s.getKind() != "struct") {
+            ErrMsg.fatal(s.getMyLineNum(), s.getMyCharNum(), "Dot-access of non-struct type");
+            table.setError(true);
+            return null;
+        } else {
+            //if (sym.getKind().equals("structDecl")) {
+            //System.out.println(s.getType());
+            Sym sym = ((StructDeclSym)(table.lookupGlobal(s.getType()))).lookupGlobal(myId.getMyStrVal());
+            //((StructDeclSym)(table.lookupGlobal(s.getType()))).getMyTable().print();
+            if (sym == null) {
+                ErrMsg.fatal(myId.getMyLineNum(), myId.getMyCharNum(), "Invalid struct field name");
+                table.setError(true);
+                return null;
+            }
+            myId.setMySym(sym);
+            if (sym.getKind().equals("struct")) {
+                return sym;
+            } else {
+                Sym ss = new Sym(" ", "var");
+                ss.setMyLineNum(myId.getMyLineNum());
+                ss.setMyCharNum(myId.getMyCharNum());
+                return ss;
+            }
+            /*} else {
+                ErrMsg.fatal(sym.getMyLineNum(), sym.getMyCharNum(), "Dot-access of non-struct type");
+                Sym ss = new Sym(" ", " ");
+                ss.setMyLineNum(myLineNum);
+                ss.setMyCharNum(myCharNum);
+                return ss;
+            }*/
 
+            //return null;
+        }
+        //return myId.nameAnalyze(table, s);
     }
 
 
     // 2 kids
-    private ExpNode myLoc;    
+    private ExpNode myLoc;
     private IdNode myId;
 }
 
@@ -1030,9 +1149,10 @@ class AssignNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myLhs.nameAnalyze(table, sym);
-        myExp.nameAnalyze(table, sym);
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myLhs.nameAnalyze(table);
+        myExp.nameAnalyze(table);
+        return null;
     }
 
     // 2 kids
@@ -1062,11 +1182,12 @@ class CallExpNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myId.nameAnalyze(table, sym);
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myId.nameAnalyze(table);
         if (myExpList != null) {
-            myExpList.nameAnalyze(table, sym);
+            myExpList.nameAnalyze(table);
         }
+        return null;
     }
 
     // 2 kids
@@ -1080,8 +1201,9 @@ abstract class UnaryExpNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp.nameAnalyze(table, sym);
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp.nameAnalyze(table);
+        return null;
     }
 
     // one child
@@ -1095,9 +1217,10 @@ abstract class BinaryExpNode extends ExpNode {
     }
 
     @Override
-    public void nameAnalyze(SymTable table, Sym sym) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
-        myExp1.nameAnalyze(table, sym);
-        myExp2.nameAnalyze(table, sym);
+    public Sym nameAnalyze(SymTable table) throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
+        myExp1.nameAnalyze(table);
+        myExp2.nameAnalyze(table);
+        return null;
     }
 
     // two kids
