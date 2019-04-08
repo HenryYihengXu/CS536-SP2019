@@ -276,7 +276,7 @@ class FnBodyNode extends ASTnode {
         myStmtList.unparse(p, indent);
     }
 
-    public void typeCheck(String myType){
+    public void typeCheck(Type myType){
         myStmtList.typeCheck(myType);
     }
 
@@ -307,7 +307,7 @@ class StmtListNode extends ASTnode {
         }
     }
 
-    public void typeCheck(String myType) {
+    public void typeCheck(Type myType) {
         Iterator<StmtNode> it = myStmts.iterator();
         while (it.hasNext()) {
             it.next().typeCheck(myType);
@@ -560,7 +560,7 @@ class FnDeclNode extends DeclNode {
     }
 
     public void typeCheck() {
-        myBody.typeCheck(myType.type().toString());
+        myBody.typeCheck(myType.type());
     }
 
     // 4 kids
@@ -802,7 +802,7 @@ class StructNode extends TypeNode {
 
 abstract class StmtNode extends ASTnode {
     abstract public void nameAnalysis(SymTable symTab);
-    abstract public void typeCheck(String returnType);
+    abstract public void typeCheck(Type returnType);
 }
 
 class AssignStmtNode extends StmtNode {
@@ -824,7 +824,7 @@ class AssignStmtNode extends StmtNode {
         p.println(";");
     }
 
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         myAssign.typeCheck();
     }
 
@@ -851,8 +851,15 @@ class PostIncStmtNode extends StmtNode {
         p.println("++;");
     }
 
-    public void typeCheck(String returnType) {
-        myExp.typeCheck();
+    public void typeCheck(Type returnType) {
+        Type myExpType = myExp.typeCheck();
+        if (myExpType.isErrorType()) {
+            return;
+        }
+        if (!myExpType.isIntType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                    "Arithmetic operator applied to non-numeric operand");
+        }
     }
 
     // 1 kid
@@ -878,8 +885,15 @@ class PostDecStmtNode extends StmtNode {
         p.println("--;");
     }
 
-    public void typeCheck(String returnType) {
-        myExp.typeCheck();
+    public void typeCheck(Type returnType) {
+        Type myExpType = myExp.typeCheck();
+        if (myExpType.isErrorType()) {
+            return;
+        }
+        if (!myExpType.isIntType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                    "Arithmetic operator applied to non-numeric operand");
+        }
     }
 
     // 1 kid
@@ -906,26 +920,14 @@ class ReadStmtNode extends StmtNode {
         p.println(";");
     }
 
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        switch (myExpType.toString()) {
-            case "function":
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a function");
-                break;
-            case "struct":
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a struct name");
-                break;
-            case "void":
-                break;
-            case "int":
-                break;
-            case "bool":
-                break;
-            case "error":
-                break;
-            default:
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a struct variable");
-                break;
+        if (myExpType.isFnType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a function");
+        } else if (myExpType.isStructDefType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a struct name");
+        } else if (myExpType.isStructType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to read a struct variable");
         }
     }
 
@@ -953,29 +955,16 @@ class WriteStmtNode extends StmtNode {
         p.println(";");
     }
 
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        switch (myExpType.toString()) {
-            case "function":
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a function");
-                break;
-            case "struct":
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a struct name");
-                break;
-            case "void":
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write void");
-                break;
-            case "int":
-                break;
-            case "bool":
-                break;
-            case "string":
-                break;
-            case "error":
-                break;
-            default:
-                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a struct variable");
-                break;
+        if (myExpType.isFnType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a function");
+        } else if (myExpType.isStructDefType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a struct name");
+        } else if (myExpType.isVoidType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write void");
+        } else if (myExpType.isStructType()) {
+            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(), "Attempt to write a struct variable");
         }
     }
 
@@ -1024,9 +1013,9 @@ class IfStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.toString().equals("bool")) {
+        if (!myExpType.isBoolType()) {
             ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                     "Non-bool expression used as an if condition");
         }
@@ -1103,9 +1092,9 @@ class IfElseStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.toString().equals("bool")) {
+        if (!myExpType.isBoolType()) {
             ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                     "Non-bool expression used as an if condition");
         }
@@ -1162,9 +1151,9 @@ class WhileStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.toString().equals("bool")) {
+        if (!myExpType.isBoolType()) {
             ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                     "Non-bool expression used as a while condition");
         }
@@ -1218,9 +1207,9 @@ class RepeatStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.toString().equals("int")) {
+        if (!myExpType.isIntType()) {
             ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                     "Non-integer expression used as a repeat clause");
         }
@@ -1254,7 +1243,7 @@ class CallStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         myCall.typeCheck();
     }
 
@@ -1289,28 +1278,26 @@ class ReturnStmtNode extends StmtNode {
     }
 
     @Override
-    public void typeCheck(String returnType) {
+    public void typeCheck(Type returnType) {
         if (myExp == null) {
-            if (!returnType.equals("void")) {
+            if (!returnType.isVoidType()) {
                 ErrMsg.fatal(0, 0,
                         "Missing return value");
             }
-            return;
-        }
-        Type myExpType = myExp.typeCheck();
-        //System.out.print(returnType);
-        if (returnType.equals("void")) {
-            if (!myExpType.toString().equals("void")) {
+        } else {
+            Type myExpType = myExp.typeCheck();
+            //System.out.print(returnType);
+            if (returnType.isVoidType()) {
                 ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                         "Return with a value in a void function");
+                return;
+            } else {
+                if (!returnType.equals(myExpType)) {
+                    ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                            "Bad return value");
+                }
             }
-            return;
         }
-        if (!returnType.equals(myExpType.toString())) {
-            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
-                    "Bad return value");
-        }
-        return;
     }
 
     // 1 kid
@@ -1702,30 +1689,25 @@ class AssignNode extends ExpNode {
         this.setMyLineNum(myLhs.lineNum());
         this.setMyCharNum(myLhs.charNum());
         //Type myType = null;
-        if (myLhsType.toString().equals("function") && myExpType.toString().equals("function")) {
+        if (myLhsType.isFnType() && myExpType.isFnType()) {
             ErrMsg.fatal(myLhs.lineNum(), myLhs.charNum(),
                     "Function assignment");
             return new ErrorType();
         }
-        if (myLhsType.toString().equals("struct") && myExpType.toString().equals("struct")) {
+        if (myLhsType.isStructDefType() && myExpType.isStructDefType()) {
             ErrMsg.fatal(myLhs.lineNum(), myLhs.charNum(),
                     "Struct name assignment");
             return new ErrorType();
         }
-        if (!myLhsType.toString().equals("void") && !myLhsType.toString().equals("function") &&
-                !myLhsType.toString().equals("struct") && !myLhsType.toString().equals("int") &&
-                !myLhsType.toString().equals("bool") && !myLhsType.toString().equals("error") &&
-                !myExpType.toString().equals("void") && !myExpType.toString().equals("function") &&
-                !myExpType.toString().equals("struct") && !myExpType.toString().equals("int") &&
-                !myExpType.toString().equals("bool") && !myExpType.toString().equals("error")) {
+        if (myLhsType.isStructType() && myExpType.isStructType()) {
             ErrMsg.fatal(myLhs.lineNum(), myLhs.charNum(),
                     "Struct variable assignment");
             return new ErrorType();
         }
-        if (myLhsType.toString().equals("error") || myExpType.toString().equals("error")) {
+        if (myLhsType.isErrorType() || myExpType.isErrorType()) {
             return new ErrorType();
         }
-        if (!myLhsType.toString().equals(myExpType.toString())) {
+        if (!myLhsType.equals(myExpType)) {
             ErrMsg.fatal(myLhs.lineNum(), myLhs.charNum(),
                     "Type mismatch");
             return new ErrorType();
@@ -1775,7 +1757,7 @@ class CallExpNode extends ExpNode {
         //System.out.println(myId.lineNum());
         this.setMyCharNum(myId.charNum());
         this.setMyLineNum(myId.lineNum());
-        if (!myType.toString().equals("function")) {
+        if (!myType.isFnType()) {
             ErrMsg.fatal(lineNum(), charNum(), "Attempt to call a non-function");
             return new ErrorType();
         }
@@ -1788,10 +1770,10 @@ class CallExpNode extends ExpNode {
         List<Type> myParamTypes= mySym.getParamTypes();
         for (int i = 0; i < mySym.getNumParams(); i++) {
             ExpNode n = myActuals.get(i);
-            if (n.typeCheck().toString().equals("error")) {
+            if (n.typeCheck().isErrorType()) {
                 continue;
             }
-            if (!n.typeCheck().toString().equals(myParamTypes.get(i).toString())) {
+            if (!n.typeCheck().equals(myParamTypes.get(i))) {
                 ErrMsg.fatal(n.lineNum(), n.charNum(), "Type of actual does not match type of formal");
             }
         }
@@ -1851,16 +1833,16 @@ abstract class ArithmeticBinaryExpNode extends BinaryExpNode {
         Type myExp2Type = myExp2.typeCheck();
         this.setMyCharNum(myExp1.charNum());
         this.setMyLineNum(myExp1.lineNum());
-        if (myExp1Type.toString().equals("error") || myExp2Type.toString().equals("error")) {
+        if (myExp1Type.isErrorType() || myExp2Type.isErrorType()) {
             return new ErrorType();
         }
-        if (!myExp1Type.toString().equals("int") || !myExp2Type.toString().equals("int")) {
-            if (!myExp1Type.toString().equals("int")) {
+        if (!myExp1Type.isIntType() || !myExp2Type.isIntType()) {
+            if (!myExp1Type.isIntType()) {
                 ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                         "Arithmetic operator applied to non-numeric operand");
 
             }
-            if (!myExp2Type.toString().equals("int")) {
+            if (!myExp2Type.isIntType()) {
                 ErrMsg.fatal(myExp2.lineNum(), myExp2.charNum(),
                         "Arithmetic operator applied to non-numeric operand");
             }
@@ -1880,16 +1862,16 @@ abstract class RelationalBinaryExpNode extends BinaryExpNode {
         Type myExp2Type = myExp2.typeCheck();
         this.setMyCharNum(myExp1.charNum());
         this.setMyLineNum(myExp1.lineNum());
-        if (myExp1Type.toString().equals("error") || myExp2Type.toString().equals("error")) {
+        if (myExp1Type.isErrorType() || myExp2Type.isErrorType()) {
             return new ErrorType();
         }
-        if (!myExp1Type.toString().equals("int") || !myExp2Type.toString().equals("int")) {
-            if (!myExp1Type.toString().equals("int")) {
+        if (!myExp1Type.isIntType() || !myExp2Type.isIntType()) {
+            if (!myExp1Type.isIntType()) {
                 ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                         "Relational operator applied to non-numeric operand");
 
             }
-            if (!myExp2Type.toString().equals("int")) {
+            if (!myExp2Type.isIntType()) {
                 ErrMsg.fatal(myExp2.lineNum(), myExp2.charNum(),
                         "Relational operator applied to non-numeric operand");
             }
@@ -1909,16 +1891,16 @@ abstract class LogicalBinaryExpNode extends BinaryExpNode {
         Type myExp2Type = myExp2.typeCheck();
         this.setMyCharNum(myExp1.charNum());
         this.setMyLineNum(myExp1.lineNum());
-        if (myExp1Type.toString().equals("error") || myExp2Type.toString().equals("error")) {
+        if (myExp1Type.isErrorType() || myExp2Type.isErrorType()) {
             return new ErrorType();
         }
-        if (!myExp1Type.toString().equals("bool") || !myExp2Type.toString().equals("bool")) {
-            if (!myExp1Type.toString().equals("bool")) {
+        if (!myExp1Type.isBoolType() || !myExp2Type.isBoolType()) {
+            if (!myExp1Type.isBoolType()) {
                 ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                         "Logical operator applied to non-bool operand");
 
             }
-            if (!myExp2Type.toString().equals("bool")) {
+            if (!myExp2Type.isBoolType()) {
                 ErrMsg.fatal(myExp2.lineNum(), myExp2.charNum(),
                         "Logical operator applied to non-bool operand");
             }
@@ -1939,130 +1921,35 @@ abstract class EqualityBinaryExpNode extends BinaryExpNode {
         this.setMyCharNum(myExp1.charNum());
         this.setMyLineNum(myExp1.lineNum());
         //Type myType = null;
-        if (myExp1Type.toString().equals("void") && myExp2Type.toString().equals("void")) {
+        if (myExp1Type.isVoidType() && myExp2Type.isVoidType()) {
             ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                     "Equality operator applied to void functions");
             return new ErrorType();
         }
-        if (myExp1Type.toString().equals("function") && myExp2Type.toString().equals("function")) {
+        if (myExp1Type.isFnType() && myExp2Type.isFnType()) {
             ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                     "Equality operator applied to functions");
             return new ErrorType();
         }
-        if (myExp1Type.toString().equals("struct") && myExp2Type.toString().equals("struct")) {
+        if (myExp1Type.isStructDefType() && myExp2Type.isStructDefType()) {
             ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                     "Equality operator applied to struct names");
             return new ErrorType();
         }
-        if (!myExp1Type.toString().equals("void") && !myExp1Type.toString().equals("function") &&
-                !myExp1Type.toString().equals("struct") && !myExp1Type.toString().equals("int") &&
-                !myExp1Type.toString().equals("bool") && !myExp1Type.toString().equals("error") &&
-                !myExp2Type.toString().equals("void") && !myExp2Type.toString().equals("function") &&
-                !myExp2Type.toString().equals("struct") && !myExp2Type.toString().equals("int") &&
-                !myExp2Type.toString().equals("bool") && !myExp2Type.toString().equals("error")) {
+        if (myExp1Type.isStructType() && myExp2Type.isStructType()) {
             ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                     "Equality operator applied to struct variables");
             return new ErrorType();
         }
-        if (myExp1Type.toString().equals("error") || myExp2Type.toString().equals("error")) {
+        if (myExp1Type.isErrorType() || myExp2Type.isErrorType()) {
             return new ErrorType();
         }
-        if (!myExp1Type.toString().equals(myExp2Type.toString())) {
+        if (!myExp1Type.equals(myExp2Type)) {
             ErrMsg.fatal(myExp1.lineNum(), myExp1.charNum(),
                     "Type mismatch");
             return new ErrorType();
         }
         return myExp1Type;
-        /*switch (myExp1Type.toString()) {
-            case "void":
-                ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                        "Equality operator applied to void functions");
-                myType = new ErrorType();
-                break;
-            case "function":
-                ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                        "Equality operator applied to functions");
-                myType = new ErrorType();
-                break;
-            case "struct":
-                ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                        "Equality operator applied to struct names");
-                myType = new ErrorType();
-                break;
-            case "error":
-                myType = new ErrorType();
-                break;
-            case "int":
-                break;
-            case "bool":
-                break;
-            default:
-                ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                        "Equality operator applied to struct variables");
-                myType = new ErrorType();
-        }
-        switch (myExp2Type.toString()) {
-            case "void":
-                ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                        "Equality operator applied to void functions");
-                myType = new ErrorType();
-                break;
-            case "function":
-                ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                        "Equality operator applied to functions");
-                myType = new ErrorType();
-                break;
-            case "struct":
-                ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                        "Equality operator applied to struct names");
-                myType = new ErrorType();
-                break;
-            case "error":
-                myType = new ErrorType();
-                break;
-            case "int":
-                break;
-            case "bool":
-                break;
-            default:
-                ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                        "Equality operator applied to struct variables");
-                myType = new ErrorType();
-        }*/
-        /*if (myExp1Type.toString().equals("void")) {
-            ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                    "Equality operator applied to void functions");
-            myType = new ErrorType();
-        }
-        if (myExp2Type.toString().equals("void")) {
-            ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                    "Equality operator applied to void functions");
-            myType = new ErrorType();
-        }
-        if (myExp1Type.toString().equals("function")) {
-            ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                    "Equality operator applied to functions");
-            myType = new ErrorType();
-        }
-        if (myExp2Type.toString().equals("function")) {
-            ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                    "Equality operator applied to functions");
-            myType = new ErrorType();
-        }
-        if (myExp1Type.toString().equals("struct")) {
-            ErrMsg.fatal(myExp1.getMyLineNum(), myExp1.getMyCharNum(),
-                    "Equality operator applied to struct names");
-            myType = new ErrorType();
-        }
-        if (myExp2Type.toString().equals("struct")) {
-            ErrMsg.fatal(myExp2.getMyLineNum(), myExp2.getMyCharNum(),
-                    "Equality operator applied to struct names");
-            myType = new ErrorType();
-        }
-
-        if (myExp1Type.equals("error") || myExp2Type.equals("error")) {
-            myType = new ErrorType();
-        }*/
     }
 }
 
@@ -2086,10 +1973,10 @@ class UnaryMinusNode extends UnaryExpNode {
         Type myType = myExp.typeCheck();
         this.setMyCharNum(myExp.charNum());
         this.setMyLineNum(myExp.lineNum());
-        if (myType.toString().equals("error")) {
+        if (myType.isErrorType()) {
             return new ErrorType();
         }
-        if (!myType.toString().equals("int")) {
+        if (!myType.isIntType()) {
             ErrMsg.fatal(lineNum(), charNum(), "Arithmetic operator applied to non-numeric operand");
             return new ErrorType();
         }
@@ -2112,10 +1999,10 @@ class NotNode extends UnaryExpNode {
         Type myType = myExp.typeCheck();
         this.setMyCharNum(myExp.charNum());
         this.setMyLineNum(myExp.lineNum());
-        if (myType.toString().equals("error")) {
+        if (myType.isErrorType()) {
             return new ErrorType();
         }
-        if (!myType.toString().equals("bool")) {
+        if (!myType.isBoolType()) {
             ErrMsg.fatal(lineNum(), charNum(), "Logical operator applied to non-bool operand");
             return new ErrorType();
         }
