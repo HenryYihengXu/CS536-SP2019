@@ -1712,7 +1712,7 @@ class AssignNode extends ExpNode {
                     "Type mismatch");
             return new ErrorType();
         }
-        return myLhsType;
+        return new BoolType();
     }
 
     // 2 kids  
@@ -1877,7 +1877,7 @@ abstract class RelationalBinaryExpNode extends BinaryExpNode {
             }
             return new ErrorType();
         }
-        return myExp1Type;
+        return new BoolType();
     }
 }
 
@@ -1949,7 +1949,7 @@ abstract class EqualityBinaryExpNode extends BinaryExpNode {
                     "Type mismatch");
             return new ErrorType();
         }
-        return myExp1Type;
+        return new BoolType();
     }
 }
 

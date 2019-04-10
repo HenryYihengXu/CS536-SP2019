@@ -12,7 +12,7 @@ import java_cup.runtime.*;
  * The program opens the two files, creates a scanner and a parser, and
  * calls the parser.  If the parse is successful, the AST is unparsed.
  */
-public class P5 {
+public class p5 {
 	FileReader inFile;
 	private PrintWriter outFile;
 	private static PrintStream outStream = System.err;
@@ -166,6 +166,8 @@ public class P5 {
 		switch(resultCode){
 		case RESULT_SYNTAX_ERROR:
 			pukeAndDie("Syntax error", resultCode);
+		case RESULT_NAME_ANALYSIS_ERROR:
+            pukeAndDie("Name analysis error", resultCode);
 		case RESULT_TYPE_ERROR:
 			pukeAndDie("Type checking error", resultCode);
 		default:
