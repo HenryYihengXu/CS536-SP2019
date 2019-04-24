@@ -1,13 +1,48 @@
 import java.util.*;
-
 public class SymTable {
     private List<HashMap<String, Sym>> list;
+    // hxu: new field
+    private int localOffset = -8;
+    private int paramOffset = 0;
     
     public SymTable() {
         list = new LinkedList<HashMap<String, Sym>>();
         list.add(new HashMap<String, Sym>());
     }
-    
+
+    public int getLocalOffset() {
+        return localOffset;
+    }
+
+    public void updateLocalOffset() {
+        localOffset -= 4;
+    }
+
+    public void resetLocalOffset() {
+        localOffset = -8;
+    }
+
+    public int getParamOffset() {
+        return paramOffset;
+    }
+
+    public void updateParamOffset() {
+        paramOffset += 4;
+    }
+
+    public void resetParamOffset() {
+        paramOffset = 0;
+    }
+
+    // hxu: help method for recording if a sym is global or local
+    public boolean isGlobal() {
+        if (list.size() == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     public void addDecl(String name, Sym sym) 
 	throws DuplicateSymException, EmptySymTableException, WrongArgumentException {
 	if (name == null && sym == null) {

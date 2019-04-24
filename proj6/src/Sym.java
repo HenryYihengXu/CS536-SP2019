@@ -6,6 +6,25 @@ import java.util.*;
  */
 public class Sym {
     private Type type;
+    // new new fields
+    private int offset;
+    private boolean isGlobal;
+
+    public void setOffset(int offset) {
+        this.offset = offset;
+    }
+
+    public void setGlobal(boolean global) {
+        isGlobal = global;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public boolean isGlobal() {
+        return isGlobal;
+    }
     
     public Sym(Type type) {
         this.type = type;
@@ -30,7 +49,27 @@ class FnSym extends Sym {
     private Type returnType;
     private int numParams;
     private List<Type> paramTypes;
-    
+
+    // new new fields
+    private int totalLocalSize = 0;
+    private int totalParamSize = 0;
+
+    public int getTotalParamSize() {
+        return totalParamSize;
+    }
+
+    public void setTotalParamSize(int totalParamSize) {
+        this.totalParamSize = totalParamSize;
+    }
+
+    public int getTotalLocalSize() {
+        return totalLocalSize;
+    }
+
+    public void setTotalLocalSize(int totalLocalSize) {
+        this.totalLocalSize = totalLocalSize;
+    }
+
     public FnSym(Type type, int numparams) {
         super(new FnType());
         returnType = type;

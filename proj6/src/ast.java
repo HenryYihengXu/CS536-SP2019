@@ -459,6 +459,16 @@ class VarDeclNode extends DeclNode {
                 else {
                     sym = new Sym(myType.type());
                 }
+
+                // hxu: record if this sym is global or local
+                if (!symTab.isGlobal()) {
+                    sym.setGlobal(false);
+                    sym.setOffset(symTab.getLocalOffset());
+                    symTab.updateLocalOffset();
+                } else {
+                    sym.setGlobal(true);
+                }
+
                 symTab.addDecl(name, sym);
                 myId.link(sym);
             } catch (DuplicateSymException ex) {
@@ -551,12 +561,16 @@ class FnDeclNode extends DeclNode {
         symTab.addScope();  // add a new scope for locals and params
         
         // process the formals
+        symTab.resetParamOffset();
         List<Type> typeList = myFormalsList.nameAnalysis(symTab);
+        sym.setTotalParamSize(symTab.getParamOffset());
         if (sym != null) {
             sym.addFormals(typeList);
         }
-        
+        symTab.resetLocalOffset();
         myBody.nameAnalysis(symTab); // process the function body
+        sym.setTotalLocalSize(-symTab.getLocalOffset() - 8);
+        symTab.resetLocalOffset();
         
         try {
             symTab.removeScope();  // exit scope
@@ -565,6 +579,7 @@ class FnDeclNode extends DeclNode {
                                " in FnDeclNode.nameAnalysis");
             System.exit(-1);
         }
+        // hxu: check if the program contains main function
         if (myId.name().equals("main")) {
             ErrMsg.hasMain = true;
         }
@@ -631,6 +646,10 @@ class FormalDeclNode extends DeclNode {
         if (!badDecl) {  // insert into symbol table
             try {
                 sym = new Sym(myType.type());
+                // hxu: compute offset of the parameter
+                sym.setOffset(symTab.getParamOffset());
+                symTab.updateParamOffset();
+
                 symTab.addDecl(name, sym);
                 myId.link(sym);
             } catch (DuplicateSymException ex) {
@@ -987,7 +1006,7 @@ class WriteStmtNode extends StmtNode {
      */
     public void typeCheck(Type retType) {
         Type type = myExp.typeCheck();
-        
+        myType = type; // hxu
         if (type.isFnType()) {
             ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                          "Attempt to write a function");
@@ -1018,6 +1037,8 @@ class WriteStmtNode extends StmtNode {
 
     // 1 kid
     private ExpNode myExp;
+    // hxu: new field
+    private Type myType;
 }
 
 class IfStmtNode extends StmtNode {
@@ -1606,7 +1627,7 @@ class IdNode extends ExpNode {
     public void unparse(PrintWriter p, int indent) {
         p.print(myStrVal);
         if (mySym != null) {
-            p.print("(" + mySym + ")");
+            p.print("(" + mySym + ", offset: " + mySym.getOffset() + ")"); // hxu: modified to print offset
         }
     }
 

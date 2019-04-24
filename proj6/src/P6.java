@@ -147,7 +147,7 @@ public class P6 {
 		}
 
 		astRoot.nameAnalysis();	 // perform name analysis
-        if (!ErrMsg.hasMain) {   // hxu
+        if (!ErrMsg.hasMain) {   // hxu: if the program does not has main
             ErrMsg.fatal(0, 0, "No main function");
         }
 		if (ErrMsg.getErr()) {
