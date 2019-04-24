@@ -12,7 +12,7 @@ import java_cup.runtime.*;
  * The program opens the two files, creates a scanner and a parser, and
  * calls the parser.  If the parse is successful, the AST is unparsed.
  */
-public class p5 {
+public class P5 {
 	FileReader inFile;
 	private PrintWriter outFile;
 	private static PrintStream outStream = System.err;

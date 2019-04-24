@@ -1015,10 +1015,14 @@ class IfStmtNode extends StmtNode {
     @Override
     public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.isBoolType()) {
-            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
-                    "Non-bool expression used as an if condition");
+        if (!myExpType.isErrorType()) {
+            //System.out.print("not error");
+            if (!myExpType.isBoolType()) {
+                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                        "Non-bool expression used as an if condition");
+            }
         }
+
         myStmtList.typeCheck(returnType);
     }
 
@@ -1094,9 +1098,11 @@ class IfElseStmtNode extends StmtNode {
     @Override
     public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.isBoolType()) {
-            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
-                    "Non-bool expression used as an if condition");
+        if (!myExpType.isErrorType()) {
+            if (!myExpType.isBoolType()) {
+                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                        "Non-bool expression used as an if condition");
+            }
         }
         myThenStmtList.typeCheck(returnType);
         myElseStmtList.typeCheck(returnType);
@@ -1153,9 +1159,11 @@ class WhileStmtNode extends StmtNode {
     @Override
     public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.isBoolType()) {
-            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
-                    "Non-bool expression used as a while condition");
+        if (!myExpType.isErrorType()) {
+            if (!myExpType.isBoolType()) {
+                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                        "Non-bool expression used as a while condition");
+            }
         }
         myStmtList.typeCheck(returnType);
     }
@@ -1209,10 +1217,13 @@ class RepeatStmtNode extends StmtNode {
     @Override
     public void typeCheck(Type returnType) {
         Type myExpType = myExp.typeCheck();
-        if (!myExpType.isIntType()) {
-            ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
-                    "Non-integer expression used as a repeat clause");
+        if (!myExpType.isErrorType()) {
+            if (!myExpType.isIntType()) {
+                ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
+                        "Non-integer expression used as a repeat clause");
+            }
         }
+
         myStmtList.typeCheck(returnType);
     }
 
@@ -1292,6 +1303,9 @@ class ReturnStmtNode extends StmtNode {
                         "Return with a value in a void function");
                 return;
             } else {
+                if (myExpType.isErrorType()) {
+                    return;
+                }
                 if (!returnType.equals(myExpType)) {
                     ErrMsg.fatal(myExp.lineNum(), myExp.charNum(),
                             "Bad return value");
@@ -1846,6 +1860,7 @@ abstract class ArithmeticBinaryExpNode extends BinaryExpNode {
                 ErrMsg.fatal(myExp2.lineNum(), myExp2.charNum(),
                         "Arithmetic operator applied to non-numeric operand");
             }
+            //System.out.print("not int error");
             return new ErrorType();
         }
         return myExp1Type;
