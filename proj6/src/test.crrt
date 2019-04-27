@@ -1,10 +1,20 @@
 int a;
 void main() {
-    cout << 2;
+    int b;
+    bool c;
+    b = 2222;
+    c = false;
+    a = 1111;
+    cout << c;
     cout << "\n";
-    cout << false;
+    cout << c;
     cout << "\n";
-    cout << true;
+    cout << a;
+    cout << "\n";
+    cout << b;
+    cout << "\n";
+    b = 2333;
+    cout << b;
     cout << "\n";
     cout << "hahahaha!\n";
 }

@@ -972,7 +972,8 @@ class AssignStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myAssign.codeGen(false);
+        Codegen.genPop(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1158,7 +1159,7 @@ class WriteStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-        myExp.codeGen();
+        myExp.codeGen(false);
         if (myType.isIntType() || myType.isBoolType()) {
             Codegen.genPop(Codegen.A0);
             Codegen.generate("li", Codegen.V0, 1);
@@ -1576,7 +1577,14 @@ abstract class ExpNode extends ASTnode {
      * Default version for nodes with no names
      */
     public void nameAnalysis(SymTable symTab) { }
-    
+
+    @Override
+    public void codeGen() {
+
+    }
+
+    abstract public void codeGen(boolean isLHS);
+
     abstract public Type typeCheck();
     abstract public int lineNum();
     abstract public int charNum();
@@ -1611,7 +1619,7 @@ class IntLitNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
         Codegen.generate("li", Codegen.T0, myIntVal);
         Codegen.genPush(Codegen.T0);
     }
@@ -1654,7 +1662,7 @@ class StringLitNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
         Codegen.generate(".data");
         String label = Codegen.nextLabel();
         Codegen.genLabel(label);
@@ -1701,7 +1709,7 @@ class TrueNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
         Codegen.generate("li", Codegen.T0, 1);
         Codegen.genPush(Codegen.T0);
     }
@@ -1742,7 +1750,7 @@ class FalseNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
         Codegen.generate("li", Codegen.T0, 0);
         Codegen.genPush(Codegen.T0);
     }
@@ -1812,14 +1820,25 @@ class IdNode extends ExpNode {
         }
     }
 
-    @Override
-    public void codeGen() {
-        /*if (mySym.isGlobal()) {
-            Codegen.generate(".data");
-            Codegen.generate(".align 4");
-            //Codegen.p.println("\t.align 4");
-            Codegen.generateLabeled(myStrVal, ".word", "", "0");//global declaration for " + myStrVal);
-        }*/
+    public void codeGen(boolean isLHS) {
+        if (isLHS) {
+            if (mySym.isGlobal()) {
+                Codegen.generate("la", Codegen.T0, myStrVal);
+                Codegen.genPush(Codegen.T0);
+            } else {
+                Codegen.generateIndexed("la", Codegen.T0, Codegen.FP, mySym.getOffset());
+                Codegen.genPush(Codegen.T0);
+            }
+        } else {
+            if (mySym.isGlobal()) {
+                Codegen.generate("la", Codegen.T0, myStrVal);
+                Codegen.generateIndexed("lw", Codegen.T0, Codegen.T0, 0);
+                Codegen.genPush(Codegen.T0);
+            } else {
+                Codegen.generateIndexed("lw", Codegen.T0, Codegen.FP, mySym.getOffset());
+                Codegen.genPush(Codegen.T0);
+            }
+        }
     }
 
     /**
@@ -1986,7 +2005,7 @@ class DotAccessExpNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2071,8 +2090,14 @@ class AssignNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
-
+    public void codeGen(boolean isLHS) {
+        myExp.codeGen(false);
+        myLhs.codeGen(true);
+        Codegen.genPop(Codegen.T1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
+        Codegen.generate("li", Codegen.T0, 1);
+        Codegen.genPush(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -2153,7 +2178,7 @@ class CallExpNode extends ExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2272,7 +2297,7 @@ class UnaryMinusNode extends UnaryExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2309,7 +2334,7 @@ class NotNode extends UnaryExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2480,7 +2505,7 @@ class PlusNode extends ArithmeticExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2499,7 +2524,7 @@ class MinusNode extends ArithmeticExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2518,7 +2543,7 @@ class TimesNode extends ArithmeticExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2537,7 +2562,7 @@ class DivideNode extends ArithmeticExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2556,7 +2581,7 @@ class AndNode extends LogicalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2575,7 +2600,7 @@ class OrNode extends LogicalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2594,7 +2619,7 @@ class EqualsNode extends EqualityExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2613,7 +2638,7 @@ class NotEqualsNode extends EqualityExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2632,7 +2657,7 @@ class LessNode extends RelationalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2651,7 +2676,7 @@ class GreaterNode extends RelationalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2670,7 +2695,7 @@ class LessEqNode extends RelationalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
@@ -2689,7 +2714,7 @@ class GreaterEqNode extends RelationalExpNode {
     }
 
     @Override
-    public void codeGen() {
+    public void codeGen(boolean isLHS) {
 
     }
 
