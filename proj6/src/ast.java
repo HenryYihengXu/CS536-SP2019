@@ -298,7 +298,8 @@ class FnBodyNode extends ASTnode {
 
     @Override
     public void codeGen() {
-
+        myDeclList.codeGen();
+        myStmtList.codeGen();
     }
 
     // 2 kids
@@ -332,7 +333,9 @@ class StmtListNode extends ASTnode {
 
     @Override
     public void codeGen() {
-
+        for(StmtNode node : myStmts) {
+            node.codeGen();
+        }
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -640,7 +643,7 @@ class FnDeclNode extends DeclNode {
         Codegen.generate(".text");
         if (myId.name().equals("main")) {
             //Codegen.generate(".globl", "main");
-            Codegen.p.println("\t.globl main");
+            Codegen.generate(".globl main");
         }
         Codegen.genLabel(myId.name());
         if (myId.name().equals("main")) {
@@ -1155,7 +1158,17 @@ class WriteStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myExp.codeGen();
+        if (myType.isIntType() || myType.isBoolType()) {
+            Codegen.genPop(Codegen.A0);
+            Codegen.generate("li", Codegen.V0, 1);
+            Codegen.generate("syscall");
+        }
+        if (myType.isStringType()) {
+            Codegen.genPop(Codegen.A0);
+            Codegen.generate("li", Codegen.V0, 4);
+            Codegen.generate("syscall");
+        }
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1599,7 +1612,8 @@ class IntLitNode extends ExpNode {
 
     @Override
     public void codeGen() {
-
+        Codegen.generate("li", Codegen.T0, myIntVal);
+        Codegen.genPush(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1641,7 +1655,13 @@ class StringLitNode extends ExpNode {
 
     @Override
     public void codeGen() {
-
+        Codegen.generate(".data");
+        String label = Codegen.nextLabel();
+        Codegen.genLabel(label);
+        Codegen.generate(".asciiz " + myStrVal);
+        Codegen.generate(".text");
+        Codegen.generate("la", Codegen.T0, label);
+        Codegen.genPush(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1682,7 +1702,8 @@ class TrueNode extends ExpNode {
 
     @Override
     public void codeGen() {
-
+        Codegen.generate("li", Codegen.T0, 1);
+        Codegen.genPush(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1722,7 +1743,8 @@ class FalseNode extends ExpNode {
 
     @Override
     public void codeGen() {
-
+        Codegen.generate("li", Codegen.T0, 0);
+        Codegen.genPush(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {

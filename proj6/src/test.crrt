@@ -1,4 +1,10 @@
 int a;
 void main() {
-    
+    cout << 2;
+    cout << "\n";
+    cout << false;
+    cout << "\n";
+    cout << true;
+    cout << "\n";
+    cout << "hahahaha!\n";
 }

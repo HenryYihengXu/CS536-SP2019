@@ -1,6 +1,3 @@
-	.data
-	.align 4
-a:	.word 0
 	.text
 	.globl main
 main:
