@@ -15,8 +15,8 @@
       <file leaf-file-name="Codegen.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Codegen.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6210">
-              <caret line="250" column="30" lean-forward="true" selection-start-line="250" selection-start-column="30" selection-end-line="250" selection-end-column="30" />
+            <state relative-caret-position="-402">
+              <caret line="167" column="43" lean-forward="false" selection-start-line="167" selection-start-column="43" selection-end-line="167" selection-end-column="43" />
               <folding />
             </state>
           </provider>
@@ -25,9 +25,16 @@
       <file leaf-file-name="ast.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/ast.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="337">
-              <caret line="1036" column="0" lean-forward="true" selection-start-line="1036" selection-start-column="0" selection-end-line="1036" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="368">
+              <caret line="729" column="55" lean-forward="true" selection-start-line="729" selection-start-column="55" selection-end-line="729" selection-end-column="55" />
+              <folding>
+                <element signature="e#5579#5580#0" expanded="true" />
+                <element signature="e#5615#5616#0" expanded="true" />
+                <element signature="e#24181#24182#0" expanded="true" />
+                <element signature="e#24214#24215#0" expanded="true" />
+                <element signature="e#26508#26509#0" expanded="true" />
+                <element signature="e#26541#26542#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -58,7 +65,7 @@
       <file leaf-file-name="Sym.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Sym.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="488">
+            <state relative-caret-position="1298">
               <caret line="61" column="40" lean-forward="true" selection-start-line="61" selection-start-column="40" selection-end-line="61" selection-end-column="40" />
               <folding>
                 <element signature="e#272#273#0" expanded="true" />
@@ -168,7 +175,7 @@
       <file leaf-file-name="P6.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/P6.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="540">
+            <state relative-caret-position="-1051">
               <caret line="156" column="28" lean-forward="true" selection-start-line="156" selection-start-column="28" selection-end-line="156" selection-end-column="28" />
               <folding />
             </state>
@@ -189,7 +196,9 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
+      <find>Codegen</find>
       <find>writestmtNode</find>
+      <find>word</find>
     </findStrings>
   </component>
   <component name="GradleLocalSettings">
@@ -201,9 +210,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/ErrMsg.java" />
-        <option value="$PROJECT_DIR$/src/P6.java" />
         <option value="$PROJECT_DIR$/src/SymTable.java" />
         <option value="$PROJECT_DIR$/src/Sym.java" />
+        <option value="$PROJECT_DIR$/src/P6.java" />
         <option value="$PROJECT_DIR$/src/ast.java" />
       </list>
     </option>
@@ -411,26 +420,10 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/Codegen.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6210">
-          <caret line="250" column="30" lean-forward="true" selection-start-line="250" selection-start-column="30" selection-end-line="250" selection-end-column="30" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/ErrMsg.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="108">
           <caret line="7" column="10" lean-forward="false" selection-start-line="7" selection-start-column="10" selection-end-line="7" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/P6.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="540">
-          <caret line="156" column="28" lean-forward="true" selection-start-line="156" selection-start-column="28" selection-end-line="156" selection-end-column="28" />
           <folding />
         </state>
       </provider>
@@ -516,28 +509,19 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Sym.java">
+    <entry file="file://$PROJECT_DIR$/src/P6.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="488">
-          <caret line="61" column="40" lean-forward="true" selection-start-line="61" selection-start-column="40" selection-end-line="61" selection-end-column="40" />
-          <folding>
-            <element signature="e#272#273#0" expanded="true" />
-            <element signature="e#308#309#0" expanded="true" />
-            <element signature="e#353#354#0" expanded="true" />
-            <element signature="e#386#387#0" expanded="true" />
-            <element signature="e#416#417#0" expanded="true" />
-            <element signature="e#445#446#0" expanded="true" />
-            <element signature="e#478#479#0" expanded="true" />
-            <element signature="e#509#510#0" expanded="true" />
-            <element signature="e#1169#1170#0" expanded="true" />
-            <element signature="e#1206#1207#0" expanded="true" />
-            <element signature="e#1263#1264#0" expanded="true" />
-            <element signature="e#1315#1316#0" expanded="true" />
-            <element signature="e#1353#1354#0" expanded="true" />
-            <element signature="e#1390#1391#0" expanded="true" />
-            <element signature="e#1447#1448#0" expanded="true" />
-            <element signature="e#1499#1500#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="-1051">
+          <caret line="156" column="28" lean-forward="true" selection-start-line="156" selection-start-column="28" selection-end-line="156" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Codegen.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-402">
+          <caret line="167" column="43" lean-forward="false" selection-start-line="167" selection-start-column="43" selection-end-line="167" selection-end-column="43" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -562,11 +546,43 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/Sym.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1298">
+          <caret line="61" column="40" lean-forward="true" selection-start-line="61" selection-start-column="40" selection-end-line="61" selection-end-column="40" />
+          <folding>
+            <element signature="e#272#273#0" expanded="true" />
+            <element signature="e#308#309#0" expanded="true" />
+            <element signature="e#353#354#0" expanded="true" />
+            <element signature="e#386#387#0" expanded="true" />
+            <element signature="e#416#417#0" expanded="true" />
+            <element signature="e#445#446#0" expanded="true" />
+            <element signature="e#478#479#0" expanded="true" />
+            <element signature="e#509#510#0" expanded="true" />
+            <element signature="e#1169#1170#0" expanded="true" />
+            <element signature="e#1206#1207#0" expanded="true" />
+            <element signature="e#1263#1264#0" expanded="true" />
+            <element signature="e#1315#1316#0" expanded="true" />
+            <element signature="e#1353#1354#0" expanded="true" />
+            <element signature="e#1390#1391#0" expanded="true" />
+            <element signature="e#1447#1448#0" expanded="true" />
+            <element signature="e#1499#1500#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/ast.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="337">
-          <caret line="1036" column="0" lean-forward="true" selection-start-line="1036" selection-start-column="0" selection-end-line="1036" selection-end-column="0" />
-          <folding />
+        <state relative-caret-position="368">
+          <caret line="729" column="55" lean-forward="true" selection-start-line="729" selection-start-column="55" selection-end-line="729" selection-end-column="55" />
+          <folding>
+            <element signature="e#5579#5580#0" expanded="true" />
+            <element signature="e#5615#5616#0" expanded="true" />
+            <element signature="e#24181#24182#0" expanded="true" />
+            <element signature="e#24214#24215#0" expanded="true" />
+            <element signature="e#26508#26509#0" expanded="true" />
+            <element signature="e#26541#26542#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
