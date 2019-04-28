@@ -162,7 +162,7 @@ public class P6 {
 		//////////////////////////
 		// TODO: Calling codeGen   //
         astRoot.codeGen();
-		astRoot.unparse(new PrintWriter(System.out), 0);
+		//astRoot.unparse(new PrintWriter(System.out), 0);
 		//////////////////////////
 
 		return P6.RESULT_CORRECT;
