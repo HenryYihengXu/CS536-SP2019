@@ -1,8 +1,39 @@
 int a;
 bool c;
+
+bool fn1() {
+    return false;
+}
+
+int fn2(int a) {
+    a++;
+    return a;
+}
+
+void fn3(int a) {
+    a--;
+    return;
+}
+
+int fn4(int x, int y, bool z) {
+    if (c) {
+        int m;
+        int n;
+        cout << "in fn4 while scope!\n";
+    } else {
+        int i;
+        int j;
+        j = 11 + a + x;
+        if (!c) {
+            return j;
+        }
+    }
+    return a + y;
+}
+
 void main() {
     int b;
-    bool c;
+    //bool c;
     bool d;
     a = 3;
     b = 13;
@@ -102,5 +133,25 @@ void main() {
     cout << a;
     cout << "\n";
     cout << "\n";
+    cout << "\n";
+
+    cout << fn1();
+    cout << "\n";
+    cout << "\n";
+    cout << "\n";
+
+    cout << fn2(9);
+    cout << "\n";
+    cout << "\n";
+    cout << "\n";
+
+    fn3(0);
+    fn2(0);
+    
+    cin >> c;
+    //c = true;
+    a = 5;
+
+    cout << fn4(100, 2, true);
     cout << "\n";
 }

@@ -3,7 +3,7 @@ public class SymTable {
     private List<HashMap<String, Sym>> list;
     // hxu: new field
     private int localOffset = -8;
-    private int paramOffset = 0;
+    private int paramOffset = 4;
     
     public SymTable() {
         list = new LinkedList<HashMap<String, Sym>>();
@@ -31,7 +31,7 @@ public class SymTable {
     }
 
     public void resetParamOffset() {
-        paramOffset = 0;
+        paramOffset = 4;
     }
 
     // hxu: help method for recording if a sym is global or local

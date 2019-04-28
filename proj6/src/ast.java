@@ -298,8 +298,11 @@ class FnBodyNode extends ASTnode {
 
     @Override
     public void codeGen() {
+    }
+
+    public void codeGen(String fnName) {
         myDeclList.codeGen();
-        myStmtList.codeGen();
+        myStmtList.codeGen(fnName);
     }
 
     // 2 kids
@@ -333,8 +336,11 @@ class StmtListNode extends ASTnode {
 
     @Override
     public void codeGen() {
+    }
+
+    public void codeGen(String fnName) {
         for(StmtNode node : myStmts) {
-            node.codeGen();
+            node.codeGen(fnName);
         }
     }
 
@@ -394,7 +400,9 @@ class ExpListNode extends ASTnode {
 
     @Override
     public void codeGen() {
-
+        for (int i = myExps.size() - 1; i >= 0; i--) {
+            myExps.get(i).codeGen(0);
+        }
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -660,7 +668,7 @@ class FnDeclNode extends DeclNode {
         Codegen.generate("addu", Codegen.FP, Codegen.SP, 8 + localSize);
 
         // function body
-        myBody.codeGen();
+        myBody.codeGen(myId.name());
 
         // epilogue
         Codegen.genLabel("_" + myId.name() + "_Exit");
@@ -948,6 +956,11 @@ class StructNode extends TypeNode {
 abstract class StmtNode extends ASTnode {
     abstract public void nameAnalysis(SymTable symTab);
     abstract public void typeCheck(Type retType);
+    public void codeGen() {
+
+    }
+
+    abstract public void codeGen(String fnName);
 }
 
 class AssignStmtNode extends StmtNode {
@@ -970,8 +983,7 @@ class AssignStmtNode extends StmtNode {
         myAssign.typeCheck();
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myAssign.codeGen(0);
         Codegen.genPop(Codegen.T0);
     }
@@ -1011,8 +1023,7 @@ class PostIncStmtNode extends StmtNode {
         }
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(1);
         myExp.codeGen(0);
         Codegen.genPop(Codegen.T0);
@@ -1057,8 +1068,7 @@ class PostDecStmtNode extends StmtNode {
         }
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(1);
         myExp.codeGen(0);
         Codegen.genPop(Codegen.T0);
@@ -1113,8 +1123,7 @@ class ReadStmtNode extends StmtNode {
         }
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         Codegen.generate("li", Codegen.V0, 5);
         Codegen.generate("syscall");
         myExp.codeGen(1);
@@ -1173,8 +1182,7 @@ class WriteStmtNode extends StmtNode {
         }
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(0);
         if (myType.isIntType() || myType.isBoolType()) {
             Codegen.genPop(Codegen.A0);
@@ -1244,16 +1252,15 @@ class IfStmtNode extends StmtNode {
         myStmtList.typeCheck(retType);
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(0);
         Codegen.genPop(Codegen.T0);
         Codegen.generate("li", Codegen.T1, 1);
         String label = Codegen.nextLabel();
         Codegen.generate("bne", Codegen.T0, Codegen.T1, label);
         myDeclList.codeGen();
-        myStmtList.codeGen();
-        Codegen.generate(label + ":");
+        myStmtList.codeGen(fnName);
+        Codegen.genLabel(label);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1334,8 +1341,7 @@ class IfElseStmtNode extends StmtNode {
         myElseStmtList.typeCheck(retType);
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(0);
         Codegen.genPop(Codegen.T0);
         Codegen.generate("li", Codegen.T1, 1);
@@ -1343,12 +1349,12 @@ class IfElseStmtNode extends StmtNode {
         String afterLabel = Codegen.nextLabel();
         Codegen.generate("bne", Codegen.T0, Codegen.T1, elseLabel);
         myThenDeclList.codeGen();
-        myThenStmtList.codeGen();
+        myThenStmtList.codeGen(fnName);
         Codegen.generate("j", afterLabel);
-        Codegen.generate(elseLabel + ":");
+        Codegen.genLabel(elseLabel);
         myElseDeclList.codeGen();
-        myElseStmtList.codeGen();
-        Codegen.generate(afterLabel + ":");
+        myElseStmtList.codeGen(fnName);
+        Codegen.genLabel(afterLabel);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1419,19 +1425,18 @@ class WhileStmtNode extends StmtNode {
         myStmtList.typeCheck(retType);
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
         myExp.codeGen(0);
         Codegen.genPop(Codegen.T0);
         Codegen.generate("li", Codegen.T1, 1);
         String whileLabel = Codegen.nextLabel();
         String afterLabel = Codegen.nextLabel();
-        Codegen.generate(whileLabel + ":");
+        Codegen.genLabel(whileLabel);
         Codegen.generate("bne", Codegen.T0, Codegen.T1, afterLabel);
         myDeclList.codeGen();
-        myStmtList.codeGen();
+        myStmtList.codeGen(fnName);
         Codegen.generate("j", whileLabel);
-        Codegen.generate(afterLabel + ":");
+        Codegen.genLabel(afterLabel);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1494,8 +1499,7 @@ class RepeatStmtNode extends StmtNode {
         myStmtList.typeCheck(retType);
     }
 
-    @Override
-    public void codeGen() {
+    public void codeGen(String fnName) {
 
     }
 
@@ -1537,9 +1541,9 @@ class CallStmtNode extends StmtNode {
         myCall.typeCheck();
     }
 
-    @Override
-    public void codeGen() {
-
+    public void codeGen(String fnName) {
+        myCall.codeGen(0);
+        //Codegen.genPop(Codegen.T0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1594,9 +1598,12 @@ class ReturnStmtNode extends StmtNode {
         
     }
 
-    @Override
-    public void codeGen() {
-
+    public void codeGen(String fnName) {
+        if (myExp != null) {
+            myExp.codeGen(0);
+            Codegen.genPop(Codegen.V0);
+        }
+        Codegen.generate("j", "_" + fnName + "_Exit");
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1866,7 +1873,9 @@ class IdNode extends ExpNode {
     }
 
     public void codeGen(int flag) {
-        if (flag == 1) {
+        if (flag == 2) {
+            Codegen.generate("jal", myStrVal);
+        } else if (flag == 1) {
             if (mySym.isGlobal()) {
                 Codegen.generate("la", Codegen.T0, myStrVal);
                 Codegen.genPush(Codegen.T0);
@@ -2224,7 +2233,11 @@ class CallExpNode extends ExpNode {
 
     @Override
     public void codeGen(int flag) {
-
+        if (myExpList != null) {
+            myExpList.codeGen();
+        }
+        myId.codeGen(2);
+        Codegen.genPush(Codegen.V0);
     }
 
     // ** unparse **
