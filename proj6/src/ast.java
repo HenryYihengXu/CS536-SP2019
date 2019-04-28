@@ -1013,7 +1013,13 @@ class PostIncStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-        myExp.codeGen();
+        myExp.codeGen(1);
+        myExp.codeGen(0);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 1);
+        Codegen.generate("add", Codegen.T0, Codegen.T0, Codegen.T1);
+        Codegen.genPop(Codegen.T1);
+        Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1053,7 +1059,13 @@ class PostDecStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myExp.codeGen(1);
+        myExp.codeGen(0);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 1);
+        Codegen.generate("sub", Codegen.T0, Codegen.T0, Codegen.T1);
+        Codegen.genPop(Codegen.T1);
+        Codegen.generateIndexed("sw", Codegen.T0, Codegen.T1, 0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1103,7 +1115,11 @@ class ReadStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        Codegen.generate("li", Codegen.V0, 5);
+        Codegen.generate("syscall");
+        myExp.codeGen(1);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generateIndexed("sw", Codegen.V0, Codegen.T0, 0);
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1230,7 +1246,14 @@ class IfStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myExp.codeGen(0);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 1);
+        String label = Codegen.nextLabel();
+        Codegen.generate("bne", Codegen.T0, Codegen.T1, label);
+        myDeclList.codeGen();
+        myStmtList.codeGen();
+        Codegen.generate(label + ":");
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1313,7 +1336,19 @@ class IfElseStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myExp.codeGen(0);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 1);
+        String elseLabel = Codegen.nextLabel();
+        String afterLabel = Codegen.nextLabel();
+        Codegen.generate("bne", Codegen.T0, Codegen.T1, elseLabel);
+        myThenDeclList.codeGen();
+        myThenStmtList.codeGen();
+        Codegen.generate("j", afterLabel);
+        Codegen.generate(elseLabel + ":");
+        myElseDeclList.codeGen();
+        myElseStmtList.codeGen();
+        Codegen.generate(afterLabel + ":");
     }
 
     public void unparse(PrintWriter p, int indent) {
@@ -1386,7 +1421,17 @@ class WhileStmtNode extends StmtNode {
 
     @Override
     public void codeGen() {
-
+        myExp.codeGen(0);
+        Codegen.genPop(Codegen.T0);
+        Codegen.generate("li", Codegen.T1, 1);
+        String whileLabel = Codegen.nextLabel();
+        String afterLabel = Codegen.nextLabel();
+        Codegen.generate(whileLabel + ":");
+        Codegen.generate("bne", Codegen.T0, Codegen.T1, afterLabel);
+        myDeclList.codeGen();
+        myStmtList.codeGen();
+        Codegen.generate("j", whileLabel);
+        Codegen.generate(afterLabel + ":");
     }
 
     public void unparse(PrintWriter p, int indent) {

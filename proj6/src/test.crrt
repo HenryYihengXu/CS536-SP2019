@@ -1,12 +1,19 @@
 int a;
+bool c;
 void main() {
     int b;
     bool c;
     bool d;
-    b = 12;
-    c = false;
     a = 3;
-    d = true;
+    b = 13;
+    c = true;
+    d = false;
+    //cin >> a;
+    //cin >> b;
+    //cin >> c;
+    //cin >> d;
+    a++;
+    b--;
     cout << a;
     cout << "\n";
     cout << b;
@@ -21,7 +28,7 @@ void main() {
     cout << "\n";
     cout << (b + 1) / a;
     cout << "\n";
-    cout << (b + 3) / a;
+    cout << (b + 4) / a;
     cout << "\n";
     cout << a * b;
     cout << "\n";
@@ -34,4 +41,66 @@ void main() {
     cout << -a;
     cout << "\n";
     cout << "hahahaha!\n";
+    cout << "\n";
+    cout << "\n";
+    if (c && d && true) {
+        int a;
+        a = 100;
+        cout << "go to then scope 1!\n";
+    }
+    if (c || d) {
+        int a;
+        int f;
+        a = 100;
+        f = 200;
+        cout << "go to then scope 2!\n";
+        cout << a;
+        cout << "\n";
+        cout << f;
+        cout << "\n";
+    }
+    cout << a;
+    cout << "\n";
+    cout << "\n";
+    cout << "\n";
+
+    cin >> c;
+    if (c) {
+        bool b;
+        int f;
+        b = true;
+        f = 100;
+        a = 300;
+        cout << f;
+        cout << "\n";
+        cout << "go to then scope!\n";
+    } else {
+        bool b;
+        int f;
+        b = false;
+        f = 200;
+        a = 400;
+        cout << f;
+        cout << "\n";
+        cout << "go to else scope!\n";
+    }
+    cout << a;
+    cout << "\n";
+    cout << "\n";
+    cout << "\n";
+
+    while (c) {
+        int f;
+        f = 200;
+        a = 100;
+        c = false;
+        cout << "\n";
+        cout << "go to while loop!\n";
+        cout << f;
+        cout << "\n";
+    }
+    cout << a;
+    cout << "\n";
+    cout << "\n";
+    cout << "\n";
 }
